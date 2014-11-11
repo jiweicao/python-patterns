@@ -1,0 +1,54 @@
+"""
+Hold:
+Hold object O has subject S as an attribute(property) — that’s all
+* use self.s.method, or O.S.method
+* simple, direct, immediate, but … pretty strong coupling, often on the wrong axis
+"""
+
+"""
+Wrap:
+hold (often via private name) plus delegation (so you directly use O.method)
+* explicit (def method(slef…)… self.s.method)
+* automatic (delegation in __getattr__)
+* gets coupling right (Law of Demeter)
+
+"""
+class RestrictingWrapper(object):
+    def __init__(self, w, block):
+        self._w = w
+        self._block = block
+
+    def __getattr__(self, n):
+        # strict wrapper
+        if n in self._block:
+            raise AttributeError, n
+        return getattr(self._w, n)
+
+
+"""
+* Subclassing is a problem, though:
+class Foo(Singleton): pass
+class Bar(Singleton): pass
+f = Foo()
+b = Bar()
+problem is intrinsic to Singleton
+"""
+class Singleton(object):
+    def __new__(cls, *a, **k):
+        if not hasattr(cls, '_inst'):
+            cls._inst = super(Singleton, cls).__new__(cls, *a, **k)
+        return cls._inst
+
+"""
+Monostate("Borg")
+
+"""
+class Borg:
+    __shared_state = {}
+
+    def __init__(self):
+        self.__dict__ = self.__shared_state
+        self.state = 'Init'
+
+    def __str__(self):
+        return self.state
